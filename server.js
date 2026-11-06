@@ -1474,7 +1474,7 @@ function validatePersonFields(p) {
 app.get('/api/players/safety-template', (req, res) => {
   const tplPath = path.join(__dirname, 'public', 'uploads', 'templates', 'safety_agreement_template.docx');
   if (!fs.existsSync(tplPath)) return res.status(404).json({ error: '模板文件不存在' });
-  res.download(tplPath, '2026年沈阳城市学院绿岛杯足球赛参赛安全责任书.docx');
+  res.download(tplPath, '校园足球赛事参赛安全责任书.docx');
 });
 
 // ========== 球队 ==========
@@ -2240,14 +2240,14 @@ app.post('/api/players/:id/submit-draft', requireAuth, (req, res) => {
 app.get('/api/players/withdraw-template', (req, res) => {
   const tplPath = path.join(__dirname, 'public', 'uploads', 'templates', 'withdrawal_agreement_template.docx');
   if (!fs.existsSync(tplPath)) return res.status(404).json({ error: '模板文件不存在' });
-  res.download(tplPath, '2026年沈阳城市学院绿岛杯足球赛球员放弃本届赛事协议书.docx');
+  res.download(tplPath, '校园足球赛事球员放弃本届赛事协议书.docx');
 });
 
 // 在校学生身份证明（替代学生证）模板下载：学生证丢失或暂时无法提供时使用
 app.get('/api/players/identity-template', (req, res) => {
   const tplPath = path.join(__dirname, 'public', 'uploads', 'templates', 'identity_student_card_template.docx');
   if (!fs.existsSync(tplPath)) return res.status(404).json({ error: '模板文件不存在' });
-  res.download(tplPath, '2026绿岛杯在校学生身份证明（替代学生证）.docx');
+  res.download(tplPath, '校园足球赛事在校学生身份证明（替代学生证）.docx');
 });
 
 // 上传弃赛协议书
@@ -2528,7 +2528,7 @@ app.get('/api/referees', (req, res) => {
 app.get('/api/referees/fair-play-template', (req, res) => {
   const tplPath = path.join(__dirname, 'public', 'uploads', 'templates', 'fair_play_commitment_template.docx');
   if (!fs.existsSync(tplPath)) return res.status(404).json({ error: '模板文件不存在' });
-  res.download(tplPath, '2026年沈阳城市学院绿岛杯足球赛裁判及工作人员公平竞赛承诺书.docx');
+  res.download(tplPath, '校园足球赛事裁判及工作人员公平竞赛承诺书.docx');
 });
 
 // 公平竞赛承诺书图片上传（管理员添加/编辑裁判时）
@@ -4330,13 +4330,13 @@ app.post('/api/draw/execute', requireAdmin, (req, res) => {
   if (new Set(vals).size !== 6) return res.status(400).json({ error: '每支球队只能落入一个席位' });
   if (vals.some(v => !menIds.includes(v))) return res.status(400).json({ error: '存在非男子组球队' });
   const s = {}; slotOrder.forEach((k, i) => s[k] = vals[i]);
-  // 回避规则：体育与艺术学院A队、B队必须分在不同小组
+  // 回避规则：球队E、球队F必须分在不同小组
   const pairTeams = db.prepare("SELECT id,name FROM teams WHERE gender='men' AND COALESCE(is_hidden,0)=0").all()
-    .filter(t => t.name && t.name.indexOf('体育与艺术学院') === 0 && /[AB]队$/.test(t.name)).map(t => t.id);
+    .filter(t => t.name === '球队E' || t.name === '球队F').map(t => t.id);
   if (pairTeams.length === 2) {
     const groupOf = id => slotOrder.find(k => s[k] === id).charAt(0);
     if (groupOf(pairTeams[0]) === groupOf(pairTeams[1]))
-      return res.status(400).json({ error: '体育与艺术学院A队、B队不得分在同一小组，请重抽' });
+      return res.status(400).json({ error: '球队E、球队F不得分在同一小组，请重抽' });
   }
   const upd = db.prepare('UPDATE matches SET team1_id=?,team2_id=? WHERE id=?');
   const gms = db.prepare("SELECT id,team1_source,team2_source FROM matches WHERE gender='men' AND round_group IN ('A','B')").all();
@@ -4707,7 +4707,7 @@ app.get('/api/export/:type', requireAuth, async (req, res) => {
 // D12 赛后多Sheet归档导出
 app.get('/api/export/archive/full', requireAdmin, async (req, res) => {
   const wb = new ExcelJS.Workbook();
-  wb.creator = '绿岛杯赛事系统';
+  wb.creator = '校园足球赛事管理系统';
   const head = (ws) => {
     ws.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
     ws.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1A4D3A' } };
@@ -4719,7 +4719,7 @@ app.get('/api/export/archive/full', requireAdmin, async (req, res) => {
   ws.columns = [{ header: '项目', key: 'k', width: 22 }, { header: '内容', key: 'v', width: 40 }];
   const finished = db.prepare("SELECT * FROM matches WHERE status='finished'").all();
   const goals = finished.reduce((s, m) => s + (m.team1_score || 0) + (m.team2_score || 0), 0);
-  [['赛事名称', '2026年沈阳城市学院“绿岛杯”足球赛'], ['导出时间', new Date().toLocaleString('zh-CN')],
+  [['赛事名称', '校园足球赛事'], ['导出时间', new Date().toLocaleString('zh-CN')],
    ['比赛总数', db.prepare('SELECT COUNT(*) c FROM matches').get().c], ['已赛场次', finished.length],
    ['参赛球队', db.prepare('SELECT COUNT(*) c FROM teams WHERE COALESCE(is_hidden,0)=0').get().c],
    ['报名球员', db.prepare('SELECT COUNT(*) c FROM players WHERE deleted_at IS NULL').get().c],
@@ -4834,7 +4834,7 @@ app.get('/api/export/archive/full', requireAdmin, async (req, res) => {
   head(ws);
 
   res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent('绿岛杯赛事归档')}_${BJ().slice(0,10)}.xlsx`);
+  res.setHeader('Content-Disposition', `attachment; filename*=UTF-8''${encodeURIComponent('校园足球赛事归档')}_${BJ().slice(0,10)}.xlsx`);
   await wb.xlsx.write(res);
   res.end();
 });
@@ -6010,8 +6010,8 @@ app.use((err, req, res, next) => {
 const APP_VERSION = 'v62';
 const STARTED_AT = Date.now();
 // 期望的基线数据（v51：男6女5）
-const EXPECT_MEN_TEAMS = ['商学院','文化与传播学院','智能与工程学院','生命与健康管理学院','体育与艺术学院A队','体育与艺术学院B队'];
-const EXPECT_WOMEN_TEAMS = ['商学院','文化与传播学院','智能与工程学院','生命与健康管理学院','体育与艺术学院'];
+const EXPECT_MEN_TEAMS = ['球队A','球队B','球队C','球队D','球队E','球队F'];
+const EXPECT_WOMEN_TEAMS = ['球队A','球队B','球队C','球队D','球队E'];
 const REQUIRED_TABLES = ['users','teams','players','referees','matches','match_events','match_photos','penalty_shootout','match_lineups','match_checkins','suspensions','login_logs','settings','operation_logs','messages','announcements','match_reminders','referee_reports','referee_report_events','match_ref_confirm','awards','yellow_resets','exhibition_matches','exhibition_players','exhibition_events','exhibition_penalties'];
 function _check(name, ok, detail) { return { name, ok: !!ok, detail: String(detail == null ? '' : detail) }; }
 // 综合自检：只做只读检查 + 目录可写性探针，不改动任何业务数据
@@ -6135,7 +6135,7 @@ setTimeout(() => { try { console.log('[启动基线备份]', performBackup()); }
 
 // 启动
 server.listen(PORT, '0.0.0.0', () => {
-  console.log(`\n绿岛杯赛事管理系统已启动`);
+  console.log(`\n校园足球赛事一体化协同管理平台已启动`);
   console.log(`本机访问: http://localhost:${PORT}`);
   const nets = require('os').networkInterfaces();
   Object.values(nets).forEach(iface => {

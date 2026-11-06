@@ -4,7 +4,7 @@
     <link rel="icon" type="image/png" href="/uploads/logo.png">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>绿岛杯足球赛管理系统 - 登录</title>
+  <title>校园足球赛事一体化协同管理平台 - 登录</title>
   <link rel="stylesheet" href="/css/style.css?v=20261009v62">
   <style>
     .captcha-row { display: flex; gap: 10px; align-items: center; }
@@ -24,9 +24,9 @@
 <body class="login-page">
   <div class="login-box">
     <div class="login-logo">
-      <img src="/uploads/logo.png" alt="校徽" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%231A4D3A%22/><text x=%2250%22 y=%2258%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22>绿</text></svg>'">
-      <h1 id="loginTitle">绿岛杯足球赛管理系统</h1>
-      <p id="loginSubtitle">2026年沈阳城市学院</p>
+      <img src="/uploads/logo.png" alt="平台标识" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%231A4D3A%22/><text x=%2250%22 y=%2258%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22>绿</text></svg>'">
+      <h1 id="loginTitle">校园足球赛事一体化协同管理平台</h1>
+      <p id="loginSubtitle">校园足球赛事管理平台</p>
     </div>
     <div class="maint-notice" id="maintNotice"></div>
     <form class="login-form" id="loginForm">
@@ -65,7 +65,7 @@
     // 裁判员入口：调整标题与占位提示（登录仍由账号自动识别角色）
     if (new URLSearchParams(location.search).get('role') === 'referee') {
       document.getElementById('loginTitle').textContent = '裁判员登录';
-      document.getElementById('loginSubtitle').textContent = '绿岛杯足球赛 · 裁判工作台';
+      document.getElementById('loginSubtitle').textContent = '校园足球赛事 · 裁判工作台';
       document.getElementById('username').placeholder = '请输入裁判账号（如 ref01）';
     }
     const captchaImg = document.getElementById('captchaImg');

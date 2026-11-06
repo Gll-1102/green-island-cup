@@ -1,5 +1,5 @@
 /**
- * 绿岛杯系统离线自检脚本（不依赖服务是否运行）
+ * 校园足球赛事系统离线自检脚本（不依赖服务是否运行）
  * 用法：node scripts/selfcheck.cjs            只做数据库/文件检查
  *       node scripts/selfcheck.cjs --http     额外探测 http://localhost:3000/api/health
  * 退出码：0 全部通过；1 存在问题（可接入 crontab / 巡检）
@@ -11,8 +11,8 @@ const { DatabaseSync } = require('node:sqlite');
 
 const ROOT = path.join(__dirname, '..');
 const DB_PATH = path.join(ROOT, 'data', 'cup.db');
-const EXPECT_MEN = ['商学院','文化与传播学院','智能与工程学院','生命与健康管理学院','体育与艺术学院A队','体育与艺术学院B队'];
-const EXPECT_WOMEN = ['商学院','文化与传播学院','智能与工程学院','生命与健康管理学院','体育与艺术学院'];
+const EXPECT_MEN = ['球队A','球队B','球队C','球队D','球队E','球队F'];
+const EXPECT_WOMEN = ['球队A','球队B','球队C','球队D','球队E'];
 const N_MEN_MATCHES = 18;
 const N_WOMEN_MATCHES = 10;
 const N_ADMINS = 2;
@@ -85,7 +85,7 @@ function main() {
 }
 
 function finish() {
-  console.log('\n========== 绿岛杯系统自检报告', new Date().toLocaleString('zh-CN'), '==========');
+  console.log('\n========== 校园足球赛事系统自检报告', new Date().toLocaleString('zh-CN'), '==========');
   let bad = 0;
   for (const r of results) {
     console.log(`${r.ok ? '[PASS]' : '[FAIL]'} ${r.name} — ${r.detail}`);

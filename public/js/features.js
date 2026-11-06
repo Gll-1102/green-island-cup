@@ -1,5 +1,5 @@
 /* ============================================================
- * 绿岛杯 V2.2 扩展功能：荣誉榜 / 报名冻结 / 电子参赛证 / 官方记录单
+ * 校园足球赛事 V2.2 扩展功能：荣誉榜 / 报名冻结 / 电子参赛证 / 官方记录单
  * 以全局函数方式挂载，供页面 onclick 直接调用（与 app.js 同全局作用域）
  * ============================================================ */
 
@@ -174,7 +174,7 @@ async function openCredential(playerId) {
 function credentialCardHtml(d, withQr) {
   const p = d.player;
   return `<div style="border:2px solid var(--primary);border-radius:14px;overflow:hidden;max-width:420px;margin:0 auto">
-    <div style="background:var(--primary);color:#fff;padding:10px 16px;text-align:center;font-weight:700;font-size:15px">2026 沈阳城市学院“绿岛杯”足球赛 · 电子参赛证</div>
+    <div style="background:var(--primary);color:#fff;padding:10px 16px;text-align:center;font-weight:700;font-size:15px">校园足球赛事 · 电子参赛证</div>
     <div style="display:flex;gap:14px;padding:16px">
       ${p.photo_path
         ? `<img src="${p.photo_path}" alt="证件照" style="width:96px;height:128px;object-fit:cover;border-radius:8px;border:1px solid var(--border);background:#f0f0f0">`
@@ -223,7 +223,7 @@ function refereeCardHtml(d, withQr) {
     ? `<img src="${r.photo_path}" alt="证件照" style="width:96px;height:128px;object-fit:cover;border-radius:8px;border:1px solid var(--border);background:#f0f0f0">`
     : `<div style="width:96px;height:128px;border-radius:8px;border:1px solid var(--border);background:var(--primary-lighter,#E8F0EC);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--primary);font-size:12px;text-align:center;padding:6px"><span style="font-size:22px">🧑‍⚖️</span>暂无证件照</div>`;
   return `<div style="border:2px solid var(--primary);border-radius:14px;overflow:hidden;max-width:420px;margin:0 auto">
-    <div style="background:var(--primary);color:#fff;padding:10px 16px;text-align:center;font-weight:700;font-size:15px">2026 沈阳城市学院“绿岛杯”足球赛 · 电子裁判证</div>
+    <div style="background:var(--primary);color:#fff;padding:10px 16px;text-align:center;font-weight:700;font-size:15px">校园足球赛事 · 电子裁判证</div>
     <div style="display:flex;gap:14px;padding:16px">
       ${photo}
       <div style="flex:1;font-size:13.5px;line-height:1.9">
@@ -265,7 +265,7 @@ function refereeCardHtml(d, withQr) {
     ? `<img src="${r.photo_path}" alt="证件照" style="width:96px;height:128px;object-fit:cover;border-radius:8px;border:1px solid var(--border);background:#f0f0f0">`
     : `<div style="width:96px;height:128px;border-radius:8px;border:1px solid var(--border);background:var(--primary-lighter,#E8F0EC);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;color:var(--primary);font-size:12px;text-align:center;padding:6px"><span style="font-size:22px">🧑‍⚖️</span>暂无证件照</div>`;
   return `<div style="border:2px solid var(--primary);border-radius:14px;overflow:hidden;max-width:420px;margin:0 auto">
-    <div style="background:var(--primary);color:#fff;padding:10px 16px;text-align:center;font-weight:700;font-size:15px">2026 沈阳城市学院“绿岛杯”足球赛 · 电子裁判证</div>
+    <div style="background:var(--primary);color:#fff;padding:10px 16px;text-align:center;font-weight:700;font-size:15px">校园足球赛事 · 电子裁判证</div>
     <div style="display:flex;gap:14px;padding:16px">
       ${photo}
       <div style="flex:1;font-size:13.5px;line-height:1.9">
@@ -341,7 +341,7 @@ function printMatchSheet() {
   .sign span{display:inline-block;min-width:150px;border-bottom:1px solid #333;padding:18px 8px 2px;text-align:center}
   @media print{.no-print{display:none}} </style></head><body>
   <div class="no-print" style="text-align:right;margin-bottom:8px"><button onclick="window.print()">打印 / 另存PDF</button></div>
-  <h1>2026 沈阳城市学院“绿岛杯”足球赛 比赛记录单</h1>
+  <h1>校园足球赛事 比赛记录单</h1>
   <div class="sub">场序 ${(typeof displayMatchNum==='function')?displayMatchNum(m):m.match_number} · ${typeof roundFullText==='function'?roundFullText(m):(m.round_name||'')}　比赛时间：${m.match_date||'—'} ${m.match_time||''}　地点：${m.match_location||'三期操场'}</div>
   <div class="score">${t1}　${scoreText}　${t2}</div>
   <table><tr><th style="width:50%">${t1}</th><th style="width:50%">${t2}</th></tr><tr>

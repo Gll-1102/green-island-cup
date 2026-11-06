@@ -20,19 +20,19 @@ db.exec('PRAGMA busy_timeout = 5000');
 // 女子组（5队）：单循环10场，按积分定冠亚季军。
 // ============================================================
 const MEN_TEAM_NAMES = [
-  '商学院',
-  '文化与传播学院',
-  '智能与工程学院',
-  '生命与健康管理学院',
-  '体育与艺术学院A队',
-  '体育与艺术学院B队',
+  '球队A',
+  '球队B',
+  '球队C',
+  '球队D',
+  '球队E',
+  '球队F',
 ];
 const WOMEN_TEAM_NAMES = [
-  '商学院',
-  '文化与传播学院',
-  '智能与工程学院',
-  '生命与健康管理学院',
-  '体育与艺术学院',
+  '球队A',
+  '球队B',
+  '球队C',
+  '球队D',
+  '球队E',
 ];
 
 // 男子小组赛种子（双循环，A/B组同轮并行）
@@ -692,7 +692,7 @@ function seedTestUser() {
     .run('testteam', bcrypt.hashSync(pwd, 10), 'viewer', '模拟测试球队', null, 0, 'men');
   const f = path.join(dataDir, 'test_account_password.txt');
   fs.writeFileSync(f, [
-    '绿岛杯 模拟测试球队账号（沙箱，退出自动清空）',
+    '校园足球赛事 模拟测试球队账号（沙箱，退出自动清空）',
     '='.repeat(48),
     '账号: testteam',
     '密码: ' + pwd,
@@ -752,7 +752,7 @@ function seedUsersAndTeams() {
     const ts = Date.now();
     const pwdFile = path.join(dataDir, `account_passwords_reset_${ts}.txt`);
     const lines = [
-      `绿岛杯账号密码清单（v51 全新生成，时间：${new Date().toLocaleString('zh-CN')}）`,
+      `校园足球赛事账号密码清单（v51 全新生成，时间：${new Date().toLocaleString('zh-CN')}）`,
       '='.repeat(64),
       ...accountList.map(([type, u, p, disp]) => `[${type}] ${disp}  账号: ${u}  密码: ${p}`),
       '='.repeat(64),

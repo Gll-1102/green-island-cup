@@ -33,7 +33,7 @@ function genPassword(len = 10) {
 
 const users = db.prepare('SELECT id, username, role, display_name, team_id, gender, COALESCE(is_test,0) is_test FROM users ORDER BY role DESC, id').all();
 const upd = db.prepare('UPDATE users SET password=?, must_change_password=?, failed_attempts=0, locked_until=NULL WHERE id=?');
-const lines = [`绿岛杯账号密码【全量随机重置】清单（重置时间：${new Date().toLocaleString('zh-CN')}）`, '='.repeat(64)];
+const lines = [`校园足球赛事账号密码【全量随机重置】清单（重置时间：${new Date().toLocaleString('zh-CN')}）`, '='.repeat(64)];
 const recs = [];
 for (const u of users) {
   let pwd, mustChange;

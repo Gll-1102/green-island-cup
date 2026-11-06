@@ -1027,7 +1027,7 @@ function renderCountdown() {
   if (diff <= 0) {
     el.innerHTML = `
       <div class="countdown-banner opened">
-        <div class="cd-label">2026 沈阳城市学院“绿岛杯”足球赛</div>
+        <div class="cd-label">校园足球赛事</div>
         <div class="cd-opened">⚽ 赛事进行中</div>
       </div>`;
     if (window.__cdTimer) { clearInterval(window.__cdTimer); window.__cdTimer = null; }
@@ -1039,7 +1039,7 @@ function renderCountdown() {
   const m = Math.floor(s / 60); s -= m * 60;
   el.innerHTML = `
     <div class="countdown-banner">
-      <div class="cd-label">距 2026 沈阳城市学院“绿岛杯”足球赛开赛</div>
+      <div class="cd-label">距校园足球赛事开赛</div>
       <div class="cd-items">
         <div class="cd-item"><span class="cd-num">${d}</span><em>天</em></div>
         <div class="cd-sep">:</div>
@@ -3480,7 +3480,7 @@ function loadRefereeApp() {
     <div style="padding:18px 22px">
       <div style="background:var(--primary-lighter,#E8F0EC);border:1px solid #cfe3d8;border-radius:10px;padding:12px 16px;font-size:13px;line-height:1.9;color:#1f2937;margin-bottom:18px">
         <b>申请说明</b><br>
-        ① 沈阳城市学院在校学生均可申请（含已报名参赛的球员）；<br>
+        ① 本校在校学生均可申请（含已报名参赛的球员）；<br>
         ② 需上传：<b>本人证件照、学生证或学信网学籍信息截图、已签署的公平竞赛承诺书</b>；<br>
         ③ 同一学号每天最多提交 <b>3 次</b>（提交即计数，含被拒/撤回），次日 00:00 重置；<br>
         ④ 管理员审批时评定裁判等级（一级~四级）；审批通过后自动生成裁判账号并加入裁判队伍，账号密码由组委会线下告知；<br>
@@ -4132,7 +4132,7 @@ function printRefReport() {
     table{width:100%;border-collapse:collapse;margin:8px 0} th,td{border:1px solid #bbb;padding:6px 8px;font-size:13px;text-align:left}
     th{background:#f0f4f2}.box{background:#f6f8f7;border-radius:6px;padding:8px 12px;margin:6px 0;white-space:pre-wrap}
     .grid{display:flex;gap:12px}.grid>div{flex:1;background:#f6f8f7;border-radius:6px;padding:8px 12px}
-  </style></head><body><h2>2026年沈阳城市学院“绿岛杯”足球赛 裁判报告</h2>
+  </style></head><body><h2>校园足球赛事 裁判报告</h2>
   <div class="sub">${document.getElementById('matchModalTitle').textContent}</div>${area.innerHTML}</body></html>`);
   w.document.close();
   w.focus();
@@ -6226,7 +6226,7 @@ function renderDrawCeremony() {
       <div class="draw-pool2-cap">待抽球队池 · ${drawUI.remaining.length} 支</div>
       <div class="draw-pool2-chips">${poolChips||'<span class="draw-pool2-empty">已全部抽出</span>'}</div>
     </div>
-    <div class="draw-tip2">抽签逐支进行：点击“抽取”后随机确定该签位球队；全部抽出并核对无误后再提交。提交前可清空重抽，提交后如需重抽须由管理员重置。${isWomen ? '' : '<br><b style="color:#a98842">回避规则：体育与艺术学院A队、体育与艺术学院B队强制分入不同小组，抽签过程由系统自动保证，不会落入同一组。</b>'}</div>
+    <div class="draw-tip2">抽签逐支进行：点击“抽取”后随机确定该签位球队；全部抽出并核对无误后再提交。提交前可清空重抽，提交后如需重抽须由管理员重置。${isWomen ? '' : '<br><b style="color:#a98842">回避规则：球队E、球队F强制分入不同小组，抽签过程由系统自动保证，不会落入同一组。</b>'}</div>
   </div>`;
 }
 
@@ -6237,10 +6237,10 @@ function resetLocalDraw() {
     document.querySelector('.draw-gender-tabs').outerHTML + renderDrawCeremony();
 }
 
-// 男子组回避规则：体育与艺术学院A队、B队强制分入不同小组
+// 男子组回避规则：球队E、球队F强制分入不同小组
 function menSplitPairIds() {
   const teams = (drawUI && drawUI.st && drawUI.st.teams) || [];
-  return teams.filter(t => t.name && t.name.indexOf('体育与艺术学院') === 0 && /[AB]队$/.test(t.name)).map(t => t.id);
+  return teams.filter(t => t.name === '球队E' || t.name === '球队F').map(t => t.id);
 }
 // 假设在 nextIdx 之前的签位已确定，判断是否仍能合法完成（A、B 组各恰有 1 支回避队）
 function menFeasibleAfter(slots, nextIdx) {
@@ -6421,7 +6421,7 @@ function buildMatchReport(m) {
   const yellows = evs.filter(e => e.event_type === 'yellow');
   const reds = evs.filter(e => e.event_type === 'red');
   const subs = evs.filter(e => e.event_type === 'sub');
-  let txt = `【2026绿岛杯战报】\n`;
+  let txt = `【校园足球赛事战报】\n`;
   txt += `${roundFullText(m)} 场序${displayMatchNum(m)}\n`;
   txt += `${t1} ${m.team1_score ?? '-'} : ${m.team2_score ?? '-'} ${t2}\n`;
   if (m.has_penalty) txt += `（点球大战 ${m.penalty_team1} : ${m.penalty_team2}）\n`;
@@ -6431,7 +6431,7 @@ function buildMatchReport(m) {
   if (reds.length) txt += `\n— 红牌 —\n` + reds.map(e => line(e, '🟥')).join('\n') + '\n';
   if (subs.length) txt += `\n— 换人 —\n` + subs.map(e => line(e, '🔄')).join('\n') + '\n';
   if (m.mvp_player) txt += `\n🏆 本场MVP：${m.mvp_player.jersey_number}号 ${m.mvp_player.name}\n`;
-  txt += `\n2026 沈阳城市学院“绿岛杯”足球赛组委会`;
+  txt += `\n校园足球赛事组委会`;
   return { txt, goals, yellows, reds, t1, t2 };
 }
 async function openMatchReport(matchId) {
@@ -6466,7 +6466,7 @@ function exportReportCard() {
   x.fillStyle = '#ffffff';
   x.textAlign = 'center';
   x.font = 'bold 34px "Microsoft YaHei",sans-serif';
-  x.fillText('2026 沈阳城市学院“绿岛杯”足球赛', W / 2, 70);
+  x.fillText('校园足球赛事', W / 2, 70);
   x.font = '22px "Microsoft YaHei",sans-serif'; x.fillStyle = '#C8A45C';
   x.fillText(`${roundFullText(m)} · 场序${displayMatchNum(m)}`, W / 2, 112);
   // 比分卡
@@ -6499,7 +6499,7 @@ function exportReportCard() {
   if (rep.reds.length) drawSection('🟥 红牌', rep.reds, '');
   if (m.mvp_player) { x.font = 'bold 24px "Microsoft YaHei",sans-serif'; x.fillStyle = '#FFD700'; x.fillText(`🏆 MVP：${m.mvp_player.jersey_number}号 ${m.mvp_player.name}`, 90, y + 10); y += 50; }
   x.textAlign = 'center'; x.font = '18px "Microsoft YaHei",sans-serif'; x.fillStyle = 'rgba(255,255,255,0.6)';
-  x.fillText('2026 绿岛杯赛事组委会', W / 2, H - 40);
+  x.fillText('校园足球赛事组委会', W / 2, H - 40);
   const a = document.createElement('a');
   a.download = `战报_场序${displayMatchNum(m)}_${rep.t1}vs${rep.t2}.png`;
   a.href = cv.toDataURL('image/png'); a.click();

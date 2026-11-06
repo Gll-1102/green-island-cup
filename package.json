@@ -1,7 +1,7 @@
 {
   "name": "green-island-cup",
   "version": "1.0.0",
-  "description": "2026年沈阳城市学院绿岛杯足球赛管理系统",
+  "description": "校园足球赛事一体化协同管理平台",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
