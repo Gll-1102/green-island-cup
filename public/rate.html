@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <link rel="icon" type="image/png" href="/uploads/logo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>绿岛杯 · 裁判评分</title>
+  <style>
+    :root{--primary:#1A4D3A;--primary-lighter:#E8F0EC;--bg:#F4F7F6;--border:#e2e8e5;--text:#1f2937;--light:#6b7280;--gold:#C8A45C;--blue:#2b5d8a}
+    *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+    body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding:12px;max-width:600px;margin:0 auto}
+    .top{background:var(--primary);color:#fff;border-radius:14px;padding:16px 18px;margin-bottom:12px}
+    .top .logo{width:46px;height:46px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;margin-bottom:8px}
+    .top .logo img{width:40px;height:40px}
+    .top h1{font-size:18px;margin-bottom:4px}
+    .top .vs{font-size:14px;color:#cfe3da;margin-top:6px;line-height:1.6}
+    .top a{color:#cfe3da;font-size:12px;float:right}
+    .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:12px}
+    label{display:block;font-size:13px;font-weight:600;margin:10px 0 6px}
+    select,input,textarea{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;background:#fff;font-family:inherit}
+    textarea{font-size:14px;resize:vertical;min-height:60px}
+    select:focus,input:focus,textarea:focus{outline:none;border-color:var(--primary)}
+    .btn{display:block;width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-top:12px}
+    .btn-primary{background:var(--primary);color:#fff}
+    .btn-primary:disabled{background:#9bb5aa;cursor:not-allowed}
+    .hint{font-size:12px;color:var(--light);margin-top:8px;line-height:1.7}
+    /* 裁判卡片 */
+    .ref-card{border:1.5px solid var(--border);border-radius:12px;padding:14px;margin-bottom:12px;position:relative}
+    .ref-card.done{background:#f3f8f4;border-color:#b9d4c4}
+    .ref-head{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+    .slot-badge{font-size:12px;font-weight:700;color:#fff;padding:3px 10px;border-radius:11px;white-space:nowrap}
+    .slot-main{background:var(--gold)}.slot-assistant{background:var(--primary)}.slot-fourth{background:var(--blue)}
+    .ref-name{font-size:15px;font-weight:700}
+    .done-flag{margin-left:auto;font-size:12px;color:var(--primary);font-weight:700}
+    .dim-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-bottom:1px dashed var(--border)}
+    .dim-row:last-of-type{border-bottom:none}
+    .dim-label{font-size:13px;color:#374151;flex-shrink:0}
+    .stars{display:flex;gap:2px;flex-shrink:0}
+    .star{font-size:26px;line-height:1;color:#d4dbd7;cursor:pointer;padding:2px;transition:color .12s,transform .1s}
+    .star.on{color:var(--gold)}
+    .star:active{transform:scale(1.2)}
+    .ref-card.done .star{cursor:default}
+    .toast{position:fixed;left:50%;top:16px;transform:translateX(-50%);background:rgba(0,0,0,.85);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:99;opacity:0;transition:.25s;max-width:90%;text-align:center}
+    .toast.show{opacity:1}
+    .success-box{text-align:center;padding:14px 0}
+    .success-box .big{font-size:42px;margin-bottom:8px}
+    .success-box h2{font-size:18px;color:var(--primary);margin-bottom:8px}
+    .success-box p{font-size:13px;color:var(--light);line-height:1.7}
+    .err-box{background:#fdecea;border:1px solid #f3b9b5;border-radius:12px;padding:16px;text-align:center;color:#a02020;font-size:14px;line-height:1.7}
+  </style>
+</head>
+<body>
+<div class="top">
+  <a href="/dashboard.html">返回系统</a>
+  <div class="logo"><img src="/uploads/logo.png" alt=""></div>
+  <h1>2026 绿岛杯 · 裁判评分</h1>
+  <div id="matchInfo" class="vs">加载中…</div>
+</div>
+
+<div id="content"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const token = new URLSearchParams(location.search).get('token');
+let data = null, state = {}, submittedPlayer = null;
+const $ = s => document.querySelector(s);
+function toast(msg){ const t=$('#toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2600); }
+function esc(s){ return String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+async function load(){
+  if(!token){ $('#content').innerHTML='<div class="err-box">链接缺少评分令牌，请通过球队管理员分享的链接进入。</div>'; return; }
+  try{
+    const r = await fetch('/api/rating/'+token+'/info');
+    const j = await r.json();
+    if(!r.ok){ $('#content').innerHTML='<div class="err-box">'+esc(j.error||'无法加载评分页')+'</div>'; return; }
+    data = j;
+    const m = data.match;
+    $('#matchInfo').innerHTML = `场序${m.gender==='women'?m.match_number-100:m.match_number}　${esc(m.team1_name)} <b>vs</b> ${esc(m.team2_name)}<br>${esc(m.match_date)}　${esc(data.team.name)}队内评分通道`;
+    renderPicker();
+  }catch(e){ $('#content').innerHTML='<div class="err-box">网络错误，请刷新重试</div>'; }
+}
+
+function renderPicker(){
+  const opts = data.players.map(p=>`<option value="${p.id}">${p.jersey_number?p.jersey_number+'号 ':''}${esc(p.name)}</option>`).join('');
+  $('#content').innerHTML = `
+  <div class="card">
+    <label>请选择本人姓名 *</label>
+    <select id="playerSel" onchange="onPickPlayer()">
+      <option value="">先选择你自己（须为本队已注册球员）</option>${opts}
+    </select>
+    <div class="hint">评分<b>全程匿名</b>：裁判只能看到分数与评语，看不到评分人；每人对每名裁判限评一次，请根据本场真实表现客观打分。</div>
+  </div>
+  <div id="rateArea"></div>`;
+}
+
+function onPickPlayer(){
+  const pid = Number($('#playerSel').value);
+  if(!pid){ $('#rateArea').innerHTML=''; return; }
+  const rated = data.rated_map[pid] || [];
+  state = {};
+  const cards = data.slots.map(s=>{
+    const isDone = rated.includes(s.referee_id);
+    const slotClass = s.field==='main_referee_id'?'slot-main':(s.field==='fourth_official_id'?'slot-fourth':'slot-assistant');
+    if(!isDone){
+      state[s.referee_id] = { comment:'' };
+      data.dims.forEach(d=>state[s.referee_id][d.key]=0);
+    }
+    const dimsHtml = data.dims.map(d=>`
+      <div class="dim-row">
+        <span class="dim-label">${esc(d.label)}</span>
+        <div class="stars" ${isDone?'':'onclick="starClick(event,'+s.referee_id+',\''+d.key+'\')" onmouseover="starHover(event,'+s.referee_id+',\''+d.key+'\')" onmouseout="starReset('+s.referee_id+',\''+d.key+'\')"'}>
+          ${[1,2,3,4,5].map(v=>`<span class="star ${isDone?'on':''}" data-v="${v}">★</span>`).join('')}
+        </div>
+      </div>`).join('');
+    return `
+    <div class="ref-card ${isDone?'done':''}" data-ref="${s.referee_id}">
+      <div class="ref-head">
+        <span class="slot-badge ${slotClass}">${esc(s.label)}</span>
+        <span class="ref-name">${esc(s.referee.name)}</span>
+        ${isDone?'<span class="done-flag">✓ 你已提交</span>':''}
+      </div>
+      ${isDone ? '<div class="hint">你对该裁判的评分已提交，感谢参与。</div>' :
+      dimsHtml+`
+      <label style="margin-top:10px">评语（可选）</label>
+      <textarea placeholder="客观描述优点或需改进之处，例如：判罚果断、边路越位判罚准确…" oninput="state[${s.referee_id}].comment=this.value" maxlength="500"></textarea>`}
+    </div>`;
+  }).join('');
+  const allDone = data.slots.every(s=>rated.includes(s.referee_id));
+  $('#rateArea').innerHTML = `
+    <div class="card">
+      <div style="font-size:15px;font-weight:700;margin-bottom:4px">为当场执裁裁判打分</div>
+      <div class="hint" style="margin-top:0">每颗星代表 1 分（1=很差，5=优秀）；接触较少、不便评价的裁判可留空跳过。</div>
+      ${cards}
+      ${allDone?'<div class="success-box"><div class="big">✅</div><p>你已完成本场全部裁判评分，感谢参与！<br>可将本链接转发给其他队友，或交还给下一位同学。</p></div>'
+      :'<button class="btn btn-primary" id="submitBtn" onclick="submitRating()">提交评分</button>'}
+      <div class="hint">评分窗口于赛后 48 小时关闭；提交后不可修改。</div>
+    </div>`;
+}
+
+function starClick(e, refId, dim){
+  const v = Number(e.target.dataset.v); if(!v) return;
+  state[refId][dim] = v; paintStars(refId,dim,v);
+}
+function starHover(e, refId, dim){
+  const v = Number(e.target.dataset.v); if(v) paintStars(refId,dim,v);
+}
+function starReset(refId, dim){ paintStars(refId,dim,state[refId][dim]); }
+function paintStars(refId,dim,v){
+  const card = document.querySelector('.ref-card[data-ref="'+refId+'"]');
+  const stars = card.querySelectorAll('.stars');
+  const idx = data.dims.findIndex(d=>d.key===dim);
+  stars[idx].querySelectorAll('.star').forEach((s,i)=>s.classList.toggle('on',i<v));
+}
+
+async function submitRating(){
+  const pid = Number($('#playerSel').value);
+  const ratings = [];
+  for(const s of data.slots){
+    const st = state[s.referee_id]; if(!st) continue;
+    const complete = data.dims.every(d=>st[d.key]>=1);
+    const touched = data.dims.some(d=>st[d.key]>=1);
+    if(touched && !complete){ toast('“'+s.label+'”还有维度未打分，不便评价可全部留空跳过'); return; }
+    if(complete) ratings.push({ referee_id:s.referee_id, ...st });
+  }
+  if(!ratings.length){ toast('请至少为一名裁判完整打分'); return; }
+  const btn = $('#submitBtn'); btn.disabled=true; btn.textContent='提交中…';
+  try{
+    const r = await fetch('/api/rating/'+token+'/submit',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ player_id:pid, ratings })
+    });
+    const j = await r.json();
+    if(!r.ok){ toast(esc(j.error||'提交失败')); btn.disabled=false; btn.textContent='提交评分'; return; }
+    // 更新本地已评记录
+    data.rated_map[pid] = data.rated_map[pid]||[];
+    (j.inserted||[]).forEach(label=>{ const s=data.slots.find(x=>x.label===label); if(s) data.rated_map[pid].push(s.referee_id); });
+    $('#playerSel').value='';
+    $('#rateArea').innerHTML = `<div class="card"><div class="success-box">
+      <div class="big">✅</div>
+      <h2>评分提交成功</h2>
+      <p>已评价：${esc((j.inserted||[]).join('、'))||'无新增'}${(j.dup&&j.dup.length)?'<br>（'+esc(j.dup.join('、'))+'你此前已评过）':''}</p>
+      <button class="btn btn-primary" onclick="nextPlayer()">下一位同学评分</button>
+    </div></div>`;
+    window.scrollTo({top:0,behavior:'smooth'});
+  }catch(e){ toast('网络错误，请重试'); btn.disabled=false; btn.textContent='提交评分'; }
+}
+function nextPlayer(){ renderPicker(); window.scrollTo({top:0}); }
+load();
+</script>
+</body>
+</html>

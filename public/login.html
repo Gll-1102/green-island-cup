@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="icon" type="image/png" href="/uploads/logo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>绿岛杯足球赛管理系统 - 登录</title>
+  <link rel="stylesheet" href="/css/style.css?v=20261009v62">
+  <style>
+    .captcha-row { display: flex; gap: 10px; align-items: center; }
+    .captcha-row input { flex: 1; }
+    .captcha-img { height: 48px; border-radius: 8px; cursor: pointer; border: 1.5px solid var(--border); background: #f0f7f4; transition: var(--transition); }
+    .captcha-img:hover { border-color: var(--primary); }
+    .captcha-hint { font-size: 12px; color: var(--text-lighter); margin-top: 6px; }
+    .maint-notice { display:none; margin:0 0 14px; padding:10px 12px; border-radius:10px; background:#fff4e5; border:1px solid #f0c98b; color:#8a5a17; font-size:12.5px; line-height:1.7; }
+    .maint-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.45); z-index:999; align-items:center; justify-content:center; padding:20px; }
+    .maint-modal.show { display:flex; }
+    .maint-box { background:#fff; border-radius:14px; max-width:420px; width:100%; padding:26px 24px; text-align:center; box-shadow:0 12px 40px rgba(0,0,0,.2); }
+    .maint-box .mi { font-size:38px; }
+    .maint-box h3 { margin:8px 0 10px; font-size:18px; color:#c0392b; }
+    .maint-box p { font-size:13.5px; line-height:1.85; color:#555; text-align:left; margin:0 0 18px; }
+  </style>
+</head>
+<body class="login-page">
+  <div class="login-box">
+    <div class="login-logo">
+      <img src="/uploads/logo.png" alt="校徽" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%231A4D3A%22/><text x=%2250%22 y=%2258%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22>绿</text></svg>'">
+      <h1 id="loginTitle">绿岛杯足球赛管理系统</h1>
+      <p id="loginSubtitle">2026年沈阳城市学院</p>
+    </div>
+    <div class="maint-notice" id="maintNotice"></div>
+    <form class="login-form" id="loginForm">
+      <div class="form-group">
+        <label>用户名</label>
+        <input type="text" id="username" placeholder="请输入用户名" required autocomplete="username">
+      </div>
+      <div class="form-group">
+        <label>密码</label>
+        <input type="password" id="password" placeholder="请输入密码" required autocomplete="current-password">
+      </div>
+      <div class="form-group">
+        <label>验证码</label>
+        <div class="captcha-row">
+          <input type="text" id="captcha" placeholder="请输入验证码" required maxlength="4" autocomplete="off">
+          <img class="captcha-img" id="captchaImg" src="/api/auth/captcha" title="点击刷新验证码" alt="验证码">
+        </div>
+        <div class="captcha-hint">请输入图中 4 个字符；点击图片可刷新验证码</div>
+      </div>
+      <button type="submit" class="btn-login">登 录</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+    <div style="text-align:center;margin-top:18px;font-size:12px;color:rgba(255,255,255,.78);line-height:1.7">
+      本系统由赛事技术团队设计、运营、维护<br>如有疑问请联系赛事管理员
+    </div>
+  </div>
+  <div class="maint-modal" id="maintModal">
+    <div class="maint-box">
+      <div class="mi">🕒</div>
+      <h3 id="maintModalTitle">系统维护中</h3>
+      <p id="maintModalText"></p>
+      <button type="button" class="btn-login" style="width:100%" onclick="document.getElementById('maintModal').classList.remove('show')">我知道了</button>
+    </div>
+  </div>
+  <script>
+    // 裁判员入口：调整标题与占位提示（登录仍由账号自动识别角色）
+    if (new URLSearchParams(location.search).get('role') === 'referee') {
+      document.getElementById('loginTitle').textContent = '裁判员登录';
+      document.getElementById('loginSubtitle').textContent = '绿岛杯足球赛 · 裁判工作台';
+      document.getElementById('username').placeholder = '请输入裁判账号（如 ref01）';
+    }
+    const captchaImg = document.getElementById('captchaImg');
+    const errEl = document.getElementById('loginError');
+    // 维护状态提示（管理员登录不受影响，仅作提示）
+    (async () => {
+      try {
+        const st = await fetch('/api/settings/public').then(r => r.json());
+        if (st && st.maintenance_active) {
+          const n = document.getElementById('maintNotice');
+          n.style.display = 'block';
+          n.textContent = (st.maintenance_reason === 'manual' ? '⛔ 手动停服：' : '🕒 ') + (st.maintenance_message || '当前为系统维护时段，球队端、裁判端暂停登录，管理员不受限制。');
+        }
+      } catch (e) {}
+    })();
+    function showMaintModal(msg, reason) {
+      const titleEl = document.getElementById('maintModalTitle');
+      if (titleEl) titleEl.textContent = reason === 'manual' ? '系统已停止服务' : '系统维护中';
+      document.getElementById('maintModalText').textContent = msg || (reason === 'manual'
+        ? '系统已由管理员手动停止服务，恢复时间请以管理员通知为准。'
+        : '系统维护中，请于维护结束后再登录。');
+      document.getElementById('maintModal').classList.add('show');
+    }
+    function refreshCaptcha() {
+      captchaImg.src = '/api/auth/captcha?' + Date.now();
+    }
+    captchaImg.addEventListener('click', refreshCaptcha);
+
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const captcha = document.getElementById('captcha').value.trim();
+      errEl.textContent = '';
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password, captcha })
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          if (data && data.maintenance) {
+            refreshCaptcha();
+            document.getElementById('captcha').value = '';
+            showMaintModal(data.error, data.reason);
+            return;
+          }
+          errEl.textContent = data.error || '登录失败';
+          refreshCaptcha();
+          document.getElementById('captcha').value = '';
+          return;
+        }
+        // 首次登录需要修改密码
+        if (data.mustChangePassword) {
+          sessionStorage.setItem('mustChangePassword', '1');
+          sessionStorage.setItem('loginUser', data.username);
+        } else {
+          // 必须清除上一账号可能残留的强制改密标记，避免换账号登录后误弹
+          sessionStorage.removeItem('mustChangePassword');
+          sessionStorage.removeItem('loginUser');
+        }
+        // 设置会话标记（关闭标签页即失效）
+        sessionStorage.setItem('session_active', '1');
+        window.location.href = '/dashboard.html';
+      } catch (err) {
+        errEl.textContent = '网络错误，请重试';
+        refreshCaptcha();
+      }
+    });
+  </script>
+</body>
+</html>
+

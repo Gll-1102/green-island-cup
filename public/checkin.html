@@ -1,0 +1,211 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="icon" type="image/png" href="/uploads/logo.png">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>绿岛杯 · 现场检录</title>
+<style>
+  :root{--primary:#1A4D3A;--primary-lighter:#E8F0EC;--bg:#F4F7F6;--border:#e2e8e5;--text:#1f2937;--light:#6b7280;--danger:#c62828;--gold:#C8A45C}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  body{font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);padding:14px;max-width:560px;margin:0 auto}
+  .top{background:var(--primary);color:#fff;border-radius:14px;padding:16px 18px;margin-bottom:14px}
+  .top h1{font-size:18px;margin-bottom:4px}.top a{color:#cfe3da;font-size:12px}
+  .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:16px;margin-bottom:14px}
+  label{display:block;font-size:13px;font-weight:600;margin:10px 0 6px}
+  select,input{width:100%;padding:12px;border:1.5px solid var(--border);border-radius:10px;font-size:16px;background:#fff}
+  input:focus,select:focus{outline:none;border-color:var(--primary)}
+  .btn{display:inline-block;width:100%;padding:14px;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;margin-top:12px}
+  .btn-primary{background:var(--primary);color:#fff}.btn-green{background:#2e7d32;color:#fff}.btn-gray{background:#eceff1;color:#37474f}
+  .btn-row{display:flex;gap:10px}.btn-row .btn{margin-top:0}
+  .player{display:flex;gap:14px;align-items:center}
+  .player img{width:84px;height:108px;object-fit:cover;border-radius:10px;border:1px solid var(--border);background:#f0f0f0}
+  .player .n{font-size:20px;font-weight:700}.player .m{font-size:13px;color:var(--light);line-height:1.7;margin-top:4px}
+  .tag{display:inline-block;padding:3px 12px;border-radius:12px;font-size:12px;font-weight:600;margin-top:6px}
+  .ok{background:#e8f5e9;color:#2e7d32}.bad{background:#fdecea;color:var(--danger)}.warn{background:#fff3e0;color:#e65100}
+  .hint{font-size:12px;color:var(--light);margin-top:6px;line-height:1.6}
+  #scan{width:100%;border-radius:10px;background:#000;display:none}
+  .toast{position:fixed;left:50%;top:18px;transform:translateX(-50%);background:rgba(0,0,0,.82);color:#fff;padding:10px 18px;border-radius:10px;font-size:14px;z-index:99;opacity:0;transition:.25s}
+  .recent{font-size:13px}.recent div{display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px dashed var(--border)}
+</style>
+</head>
+<body>
+<div class="top">
+  <h1>2026 绿岛杯 · 现场检录</h1>
+  <span id="who">加载中…</span>　<a href="/dashboard.html">返回系统</a>
+</div>
+
+<div class="card">
+  <label>选择本场比赛 *</label>
+  <select id="matchSel"><option value="">先选择要检录的比赛</option></select>
+  <label>扫描 / 输入参赛证凭证码</label>
+  <input id="codeInput" placeholder="摄像头扫码或手动输入 G编号-校验码" autocomplete="off" style="text-transform:uppercase">
+  <video id="scan" playsinline muted></video>
+  <div class="btn-row">
+    <button class="btn btn-gray" id="camBtn" type="button">📷 开启摄像头扫码</button>
+    <button class="btn btn-primary" type="button" onclick="doLookup()">核验</button>
+  </div>
+  <div class="hint">支持手机浏览器调用摄像头（BarcodeDetector），也可使用扫码枪或手工录入凭证码；无网络时可直接核对参赛证上的学号与照片。</div>
+</div>
+
+<div class="card" id="resultCard" style="display:none"></div>
+
+<div class="card">
+  <div style="font-weight:600;margin-bottom:6px">本场已处理</div>
+  <div class="recent" id="recent"><div class="hint">暂无</div></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<script>
+let me = null, current = null, stream = null, recent = [], lastCode = '';
+function toast(t){const e=document.getElementById('toast');e.textContent=t;e.style.opacity=1;setTimeout(()=>e.style.opacity=0,2000);}
+async function init(){
+  const meRes = await fetch('/api/auth/me'); const meData = await meRes.json().catch(()=>({}));
+  me = meData.user || meData;
+  const isAdmin = me && me.role === 'admin';
+  if (!isAdmin){
+    document.getElementById('who').textContent = '仅管理员可使用检录功能';
+    // 非管理员锁定全部操作控件，避免误操作（服务端同样限制）
+    ['matchSel','codeInput','camBtn'].forEach(id=>{const e=document.getElementById(id);if(e)e.disabled=true;});
+    const lock=document.createElement('div');
+    lock.className='card';lock.style.borderColor='#c62828';
+    lock.innerHTML='<div style="color:#c62828;font-weight:600;margin-bottom:4px">无操作权限</div><div class="hint" style="color:#666">现场检录仅由管理员操作；各球队如需确认本队签到情况，请在系统「比赛详情 → 签到管理」中查看。</div>';
+    document.querySelector('.card').after(lock);
+  }
+  else document.getElementById('who').textContent = '管理员：' + (me.displayName||me.display_name||me.username||'');
+  if(!isAdmin) return;
+  const res = await fetch('/api/matches'); const list = await res.json();
+  const sel = document.getElementById('matchSel');
+  (Array.isArray(list)?list:[]).filter(m=>m.team1_id&&m.team2_id&&m.status!=='finished')
+    .sort((a,b)=>String(a.match_date).localeCompare(String(b.match_date))||String(a.match_time).localeCompare(String(b.match_time)))
+    .forEach(m=>{
+      const o=document.createElement('option');o.value=m.id;
+      o.textContent=`场序${m.match_number} · ${m.team1?m.team1.name:'?'} VS ${m.team2?m.team2.name:'?'} ${m.match_date||''} ${m.match_time||''}`;
+      sel.appendChild(o);
+    });
+  sel.addEventListener('change', loadRecent);
+  document.getElementById('codeInput').addEventListener('keydown', e=>{ if(e.key==='Enter') doLookup(); });
+  // 支持 URL 携带 ?c=凭证码 预填
+  const urlCode = new URLSearchParams(location.search).get('c');
+  if (urlCode) document.getElementById('codeInput').value = normalizeCode(urlCode);
+  if (!('BarcodeDetector' in window)) document.getElementById('camBtn').textContent = '当前浏览器不支持自动扫码，请手动输入';
+}
+async function loadRecent(){
+  const mid = document.getElementById('matchSel').value; recent = [];
+  const el = document.getElementById('recent');
+  if (!mid){ el.innerHTML='<div class="hint">暂无</div>'; return; }
+  const res = await fetch(`/api/matches/${mid}/checkins`); const d = await res.json().catch(()=>[]);
+  recent = Array.isArray(d)?d:[];
+  renderRecent();
+}
+function renderRecent(){
+  const el=document.getElementById('recent');
+  if(!recent.length){el.innerHTML='<div class="hint">暂无</div>';return;}
+  el.innerHTML = recent.map(r=>`<div><span>${r.name||('#'+r.player_id)}　${r.jersey_number||''}号</span>
+    <span class="tag ${r.status==='checked_in'?'ok':'warn'}">${r.status==='checked_in'?'已检录':'缺阵'}</span></div>`).join('');
+}
+function normalizeCode(raw){
+  let s = String(raw||'').trim();
+  const cp = s.match(/[?&]c=(G\d+-[0-9a-fA-F]{8})/i);
+  if (cp) return cp[1].toUpperCase();
+  const g = s.match(/(G\d+-[0-9a-fA-F]{8})/i);
+  return g ? g[1].toUpperCase() : s.toUpperCase();
+}
+async function doLookup(){
+  if (!me || me.role !== 'admin') return toast('仅管理员可使用检录功能');
+  const mid = document.getElementById('matchSel').value;
+  const code = normalizeCode(document.getElementById('codeInput').value);
+  document.getElementById('codeInput').value = code;
+  lastCode = code;
+  if (!mid) return toast('请先选择比赛');
+  if (!code) return toast('请扫描或输入凭证码');
+  const res = await fetch(`/api/checkin/lookup?code=${encodeURIComponent(code)}&matchId=${mid}`);
+  const d = await res.json().catch(()=>({}));
+  const card = document.getElementById('resultCard');
+  if (!res.ok){ card.style.display='block'; card.innerHTML=`<div class="tag bad">${d.error||'核验失败'}</div>`; return; }
+  current = d;
+  const p=d.player;
+  let statusTag = '';
+  if (!d.approved) statusTag='<span class="tag bad">未通过审批，不得检录</span>';
+  else if (d.suspended) statusTag=`<span class="tag bad">停赛中（剩${d.suspension.remaining}场：${d.suspension.reason}）不得检录，仅可标记缺阵</span>`;
+  else statusTag='<span class="tag ok">资格正常，可检录</span>';
+  const ci = d.checkin;
+  card.style.display='block';
+  card.innerHTML = `<div class="player">
+      <img src="${p.photo_path||''}" alt="" onerror="this.style.visibility='hidden'">
+      <div style="flex:1">
+        <div class="n">${p.jersey_number||'-'}号 ${p.name}</div>
+        <div class="m">${d.team.name}<br>${p.position||''}　学号：${p.student_id||'—'}<br>班级：${p.class_name||'—'}</div>
+        ${statusTag}
+        ${ci?`<div style="margin-top:6px"><span class="tag ${ci.status==='checked_in'?'ok':'warn'}">当前：${ci.status==='checked_in'?'已检录':'缺阵'}</span></div>`:''}
+      </div>
+    </div>
+    <div class="btn-row" style="margin-top:14px">
+      <button class="btn btn-green" onclick="mark('checked_in')">✓ 已检录</button>
+      <button class="btn btn-gray" onclick="mark('absent')">标记缺阵</button>
+    </div>`;
+}
+async function mark(status){
+  if (!current) return;
+  if (!me || me.role !== 'admin') return toast('仅管理员可使用检录功能');
+  const mid = document.getElementById('matchSel').value;
+  const res = await fetch(`/api/matches/${mid}/checkin`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({player_id:current.player.id,status})});
+  const d = await res.json().catch(()=>({}));
+  if(!res.ok){toast(d.error||'操作失败');return;}
+  toast(status==='checked_in'?'已检录':'已标记缺阵');
+  document.getElementById('codeInput').value=''; document.getElementById('codeInput').focus();
+  doLookupSilent(); loadRecent();
+}
+async function doLookupSilent(){
+  if (!lastCode) return;
+  const mid = document.getElementById('matchSel').value;
+  if (!mid) return;
+  try {
+    const res = await fetch(`/api/checkin/lookup?code=${encodeURIComponent(lastCode)}&matchId=${mid}`);
+    const d = await res.json().catch(()=>({}));
+    if (!res.ok) return;
+    current = d;
+    const p=d.player;
+    let statusTag = '';
+    if (!d.approved) statusTag='<span class="tag bad">未通过审批，不得检录</span>';
+    else if (d.suspended) statusTag=`<span class="tag bad">停赛中（剩${d.suspension.remaining}场：${d.suspension.reason}）不得检录，仅可标记缺阵</span>`;
+    else statusTag='<span class="tag ok">资格正常，可检录</span>';
+    const ci = d.checkin;
+    const card = document.getElementById('resultCard');
+    card.innerHTML = `<div class="player">
+        <img src="${p.photo_path||''}" alt="" onerror="this.style.visibility='hidden'">
+        <div style="flex:1">
+          <div class="n">${p.jersey_number||'-'}号 ${p.name}</div>
+          <div class="m">${d.team.name}<br>${p.position||''}　学号：${p.student_id||'—'}<br>班级：${p.class_name||'—'}</div>
+          ${statusTag}
+          ${ci?`<div style="margin-top:6px"><span class="tag ${ci.status==='checked_in'?'ok':'warn'}">当前：${ci.status==='checked_in'?'已检录':'缺阵'}</span></div>`:''}
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:14px">
+        <button class="btn btn-green" onclick="mark('checked_in')">✓ 已检录</button>
+        <button class="btn btn-gray" onclick="mark('absent')">标记缺阵</button>
+      </div>`;
+  } catch(e) {}
+}
+document.getElementById('camBtn').addEventListener('click', async ()=>{
+  if (!('BarcodeDetector' in window)) return toast('请用手动输入或更换支持的浏览器');
+  const video=document.getElementById('scan');
+  if (stream){ stopCam(); return; }
+  try{
+    stream = await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});
+    video.srcObject=stream; await video.play(); video.style.display='block';
+    const det=new BarcodeDetector({formats:['qr_code']});
+    const tick=async()=>{
+      if(!stream)return;
+      const codes=await det.detect(video).catch(()=>[]);
+      if(codes.length){ document.getElementById('codeInput').value=codes[0].rawValue; stopCam(); doLookup(); return; }
+      requestAnimationFrame(tick);
+    }; tick();
+    document.getElementById('camBtn').textContent='■ 关闭摄像头';
+  }catch(e){ toast('无法调用摄像头：'+e.message); }
+});
+function stopCam(){ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;} const v=document.getElementById('scan');v.style.display='none';document.getElementById('camBtn').textContent='📷 开启摄像头扫码'; }
+init();
+</script>
+</body>
+</html>

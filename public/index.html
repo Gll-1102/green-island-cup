@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <link rel="icon" type="image/png" href="/uploads/logo.png">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>2026年沈阳城市学院"绿岛杯"足球赛</title>
+  <link rel="stylesheet" href="/css/style.css?v=20261009v62">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: linear-gradient(135deg, #0d3320 0%, #1A4D3A 50%, #0d3320 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+    }
+    .splash-container {
+      text-align: center;
+      color: #fff;
+      animation: fadeIn 1s ease-out;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .splash-logo {
+      width: 140px;
+      height: 140px;
+      border-radius: 50%;
+      background: #fff;
+      padding: 12px;
+      margin: 0 auto 28px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+    .splash-logo img { width: 100%; height: 100%; object-fit: contain; }
+    .splash-title {
+      font-size: 32px;
+      font-weight: 700;
+      letter-spacing: 4px;
+      margin-bottom: 12px;
+      text-shadow: 0 2px 12px rgba(0,0,0,0.3);
+    }
+    .splash-subtitle {
+      font-size: 18px;
+      opacity: 0.85;
+      letter-spacing: 2px;
+      margin-bottom: 40px;
+    }
+    .splash-year {
+      display: inline-block;
+      font-size: 15px;
+      background: rgba(255,255,255,0.15);
+      padding: 6px 24px;
+      border-radius: 20px;
+      letter-spacing: 3px;
+      margin-bottom: 48px;
+    }
+    .enter-btn {
+      display: inline-block;
+      padding: 12px 48px;
+      background: rgba(255,255,255,0.15);
+      border: 2px solid rgba(255,255,255,0.5);
+      border-radius: 30px;
+      color: #fff;
+      font-size: 16px;
+      letter-spacing: 4px;
+      cursor: pointer;
+      text-decoration: none;
+      transition: all 0.3s;
+      backdrop-filter: blur(4px);
+    }
+    .enter-btn:hover {
+      background: rgba(255,255,255,0.25);
+      border-color: #fff;
+      transform: translateY(-2px);
+    }
+    .splash-hint {
+      margin-top: 20px;
+      font-size: 12px;
+      opacity: 0.5;
+    }
+    .top-entries {
+      position: absolute;
+      top: 20px;
+      right: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 10;
+    }
+    .admin-link, .ref-link {
+      color: rgba(255,255,255,0.55);
+      font-size: 13px;
+      text-decoration: none;
+      padding: 6px 16px;
+      border: 1px solid rgba(255,255,255,0.2);
+      border-radius: 20px;
+      transition: all 0.3s;
+      white-space: nowrap;
+    }
+    .admin-link:hover { color: #fff; border-color: rgba(255,255,255,0.5); }
+    .ref-link {
+      border-color: rgba(200,164,92,0.55);
+      color: rgba(232,214,170,0.85);
+    }
+    .ref-link:hover { color: #fff; border-color: var(--accent, #C8A45C); background: rgba(200,164,92,0.15); }
+    @media (max-width: 480px) {
+      .top-entries { right: 12px; top: 14px; gap: 8px; }
+      .admin-link, .ref-link { font-size: 12px; padding: 5px 12px; }
+    }
+    .splash-footer {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 18px;
+      margin: 0 auto;
+      text-align: center;
+      color: rgba(255,255,255,0.42);
+      font-size: 12px;
+      letter-spacing: .5px;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+  <div class="top-entries">
+    <a href="/dashboard.html?page=referee-app" class="ref-link">裁判员申请</a>
+    <a href="/login.html?role=referee" class="admin-link">裁判员入口</a>
+    <a href="/login.html" class="admin-link">管理员/球队入口</a>
+  </div>
+  <div class="splash-container">
+    <div class="splash-logo">
+      <img src="/uploads/logo.png" alt="校徽" onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><circle cx=%2250%22 cy=%2250%22 r=%2245%22 fill=%22%231A4D3A%22/><text x=%2250%22 y=%2258%22 text-anchor=%22middle%22 fill=%22white%22 font-size=%2230%22>绿</text></svg>'">
+    </div>
+    <div class="splash-year">2026</div>
+    <h1 class="splash-title">沈阳城市学院</h1>
+    <p class="splash-subtitle">"绿岛杯"足球赛</p>
+    <a href="/dashboard.html" class="enter-btn">点击进入</a>
+    <p class="splash-hint">页面将在 3 秒后自动跳转，如未跳转请点击上方按钮</p>
+  </div>
+  <div class="splash-footer">本系统由赛事技术团队设计、运营、维护 · 如有疑问请联系赛事管理员</div>
+  <script>
+    setTimeout(() => { window.location.href = '/dashboard.html'; }, 3000);
+  </script>
+</body>
+</html>
+
